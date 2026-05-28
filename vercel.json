@@ -1,1 +1,9 @@
 
+{
+  "rewrites": [
+    {
+      "source": "/api/pay",
+      "destination": "/pay.js"
+    }
+  ]
+}
