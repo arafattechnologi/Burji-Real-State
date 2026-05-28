@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="so">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Burji Construction and Real Estate</title>
+    <style>
+        :root { --primary: #2c3e50; --secondary: #3498db; --success: #25D366; --admin: #e74c3c; --light: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--light); padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { width: 100%; max-width: 400px; background: white; padding: 30px; border-radius: 35px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: var(--primary); cursor: pointer; margin-bottom: 25px; }
+        .tab-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 12px; border: none; border-radius: 15px; cursor: pointer; background: #eee; font-weight: 600; transition: 0.3s; }
+        .active-tab { background: var(--primary); color: white; }
+        .form-group { margin: 20px 0; }
+        select, input { width: 100%; padding: 14px; border-radius: 15px; border: 1px solid #ddd; outline: none; margin-bottom: 10px; }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; }
+        
+        /* Contact Style */
+        .contact-wrapper { text-align: center; margin-top: 30px; }
+        .main-contact-btn { background: var(--secondary); color: white; padding: 15px; border-radius: 50%; font-size: 24px; border: none; cursor: pointer; width: 60px; height: 60px; }
+        #hidden-contact-options { display: none; flex-direction: column; gap: 15px; margin-top: 20px; animation: fadeIn 0.3s; }
+        #hidden-contact-options a { text-decoration: none; font-weight: bold; padding: 10px; border-radius: 10px; border: 1px solid #eee; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        #adminPanel { display: none; padding: 20px; border: 2px solid var(--admin); border-radius: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 onclick="toggleAdminLogin()">🏗️ Burji Construction</h2>
+
+    <div id="mainContent">
+        <div class="tab-group">
+            <button class="tab-btn active-tab" onclick="setActive(this)">Kiro</button>
+            <button class="tab-btn" onclick="setActive(this)">Iib</button>
+        </div>
+
+        <div id="loginArea" style="display:none; margin-bottom: 20px;">
+            <input type="password" id="adminPass" placeholder="Geli Password-ka">
+            <button class="btn" style="background:var(--admin)" onclick="verifyLogin()">🔑 Login</button>
+        </div>
+
+        <div class="form-group">
+            <label>🏗️ Nooca iyo Qolalka</label>
+            <select id="features"></select>
+        </div>
+
+        <button class="btn" style="background:var(--secondary)" onclick="calculate()">🔎 Raadi & Xisaabi</button>
+        <div id="results" style="margin-top: 15px; font-weight: bold; text-align: center;"></div>
+
+        <div class="contact-wrapper">
+            <button class="main-contact-btn" onclick="toggleContactOptions()">💬</button>
+            <div id="hidden-contact-options">
+                <a href="tel:+252610888808">📞 Wac hadda</a>
+                <a href="https://wa.me/252610888808" style="color: #25D366;">🟢 WhatsApp</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="adminPanel">
+        <h3>📋 Maamulka Inventory</h3>
+        <div id="inventoryList" style="max-height: 200px; overflow-y: auto;"></div>
+        <hr>
+        <input type="text" id="newName" placeholder="Magaca (e.g. Fillo 4+)">
+        <input type="number" id="newPrice" placeholder="Qiimaha">
+        <button class="btn" style="background:var(--success)" onclick="addNewItem()">✅ Ku dar</button>
+        <button class="btn" style="background:gray" onclick="closeAdmin()">❌ Xir</button>
+    </div>
+</div>
+
+<script>
+    let inventory = JSON.parse(localStorage.getItem('inventory')) || [{category: "Fillo", name: "4+", price: 400}];
+
+    function toggleContactOptions() {
+        let opt = document.getElementById('hidden-contact-options');
+        opt.style.display = (opt.style.display === 'flex') ? 'none' : 'flex';
+    }
+
+    function setActive(btn) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active-tab'));
+        btn.classList.add('active-tab');
+    }
+
+    function updateFeatures() {
+        let select = document.getElementById('features');
+        select.innerHTML = "";
+        inventory.forEach((item, index) => {
+            let opt = document.createElement("option");
+            opt.value = index;
+            opt.textContent = `${item.category} ${item.name} - $${item.price}`;
+            select.appendChild(opt);
+        });
+    }
+
+    function toggleAdminLogin() { document.getElementById('loginArea').style.display = 'block'; }
+
+    function verifyLogin() {
+        if(document.getElementById('adminPass').value === "1234") {
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+            updateAdminList();
+        } else { alert("Password khalad ah!"); }
+    }
+
+    function closeAdmin() { 
+        document.getElementById('mainContent').style.display = 'block';
+        document.getElementById('adminPanel').style.display = 'none'; 
+        document.getElementById('loginArea').style.display = 'none'; 
+    }
+
+    function addNewItem() {
+        let name = document.getElementById('newName').value;
+        let price = document.getElementById('newPrice').value;
+        if(name && price) {
+            inventory.push({category: "Fillo", name: name, price: parseFloat(price)});
+            localStorage.setItem('inventory', JSON.stringify(inventory));
+            updateFeatures(); updateAdminList();
+        }
+    }
+
+    function updateAdminList() {
+        let list = document.getElementById('inventoryList');
+        list.innerHTML = "";
+        inventory.forEach((item, index) => {
+            list.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:10px;">${item.name} <button onclick="removeItem(${index})">X</button></div>`;
+        });
+    }
+
+    function removeItem(index) {
+        inventory.splice(index, 1);
+        localStorage.setItem('inventory', JSON.stringify(inventory));
+        updateFeatures(); updateAdminList();
+    }
+
+    function calculate() {
+        let index = document.getElementById('features').value;
+        if(inventory[index]) {
+            let total = inventory[index].price * 1.20;
+            document.getElementById('results').innerHTML = `Qiimaha ugu dambeeya: $${total.toFixed(2)}`;
+        }
+    }
+
+    updateFeatures();
+</script>
+</body>
+</html>
